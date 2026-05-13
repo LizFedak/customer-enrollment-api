@@ -1,0 +1,6 @@
+apiVersion: v2
+name: customer-enrollment-api
+description: Northstar Bank Customer Enrollment API demo chart.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

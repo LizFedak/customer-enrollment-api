@@ -1,0 +1,24 @@
+{
+  "name": "customer-enrollment-api",
+  "version": "1.0.0",
+  "description": "Northstar Bank Customer Enrollment API demo for Postman Enterprise.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node src/index.js",
+    "test": "node --test"
+  },
+  "keywords": [
+    "northstar-bank",
+    "customer-enrollment",
+    "postman",
+    "express",
+    "api-governance"
+  ],
+  "author": "Northstar Bank API Platform Team",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {}
+}
