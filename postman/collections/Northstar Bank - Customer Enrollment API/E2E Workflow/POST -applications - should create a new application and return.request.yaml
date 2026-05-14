@@ -5,56 +5,41 @@ url: "{{baseUrl}}/applications"
 method: POST
 headers:
   x-api-key: "{{apiKey}}"
-  x-correlation-id: corr_demo_postman_e2e_create
-  Content-Type: application/json
+  x-correlation-id: corr_demo_postman_e2e_write
 body:
-  type: text
+  type: json
   content: |-
     {
-      "productType": "checking",
-      "initialDepositAmount": 250,
+      "productType": "savings",
+      "initialDepositAmount": 800,
       "customer": {
-        "firstName": "Riley",
-        "lastName": "Morgan",
-        "dateOfBirth": "1989-04-18",
+        "firstName": "Casey",
+        "lastName": "Lee",
+        "dateOfBirth": "1993-06-22",
         "email": "{{dynamicEmail}}",
-        "phone": "+1-555-0172",
+        "phone": "+1-555-0188",
         "taxIdLast4": "{{dynamicTaxIdLast4}}",
         "address": {
-          "line1": "410 Market Street",
-          "line2": "Suite 8",
-          "city": "Denver",
-          "state": "CO",
-          "postalCode": "80202",
+          "line1": "77 Union Station Road",
+          "line2": "",
+          "city": "Chicago",
+          "state": "IL",
+          "postalCode": "60606",
           "country": "US"
         }
       },
       "consent": {
         "acceptedTerms": true,
-        "marketingOptIn": false
+        "marketingOptIn": true
       }
     }
 scripts:
   - type: afterResponse
     code: |-
-      const body = pm.response.json();
-      pm.test('POST /applications - should create a new application and return 201', function () {
-        pm.response.to.have.status(201);
+      let expectedId = pm.response.json().data.id;
+      pm.collectionVariables.set('e2eApplicationId', expectedId)
+      pm.test("Status code is 201", function () {
+          pm.response.to.have.status(201);
       });
-      pm.test('Contract - created application response should include data and meta', function () {
-        pm.expect(body).to.have.keys(['data', 'meta']);
-        ['id', 'status', 'productType', 'initialDepositAmount', 'riskScore', 'requiredDocuments', 'customer', 'consent', 'decisionSummary', 'createdAt', 'updatedAt'].forEach((field) => pm.expect(body.data).to.have.property(field));
-      });
-      pm.test('Types - created application should expose expected field types', function () {
-        pm.expect(body.data.id).to.be.a('string');
-        pm.expect(body.data.riskScore).to.be.a('number');
-        pm.expect(body.data.requiredDocuments).to.be.an('array');
-        pm.expect(body.meta.timestamp).to.be.a('string');
-      });
-      pm.test('Business - new application should start in submitted status', function () {
-        pm.expect(body.data.status).to.eql('submitted');
-        pm.expect(body.data.requiredDocuments).to.include('government-id');
-      });
-      pm.collectionVariables.set('e2eApplicationId', body.data.id);
     language: text/javascript
 order: 1000

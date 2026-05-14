@@ -1,8 +1,7 @@
 $kind: collection
-name: Northstar Bank - Customer Enrollment API
 description: Northstar Bank uses the Customer Enrollment API to accept, review, and manage digital account enrollment applications across retail banking channels. It is consumed by mobile banking, branch-assisted onboarding, contact-center tools, and approved partner onboarding experiences that need a governed way to submit prospective customer information. The API exists in the Northstar Bank portfolio to standardize enrollment workflows, enforce consistent security controls, and make application status visible across internal and partner journeys.
 variables:
-  baseUrl: http://localhost:3000
+  baseUrl: http://a933b287301834bd39dbab57ab7df6fb-1794781960.us-east-1.elb.amazonaws.com/customer-enrollment
   apiKey: demo-key
   applicationId: app_demo_1001
   reviewApplicationId: app_demo_1002

@@ -1,0 +1,12 @@
+owner: "9474696"
+team: "6501880"
+lastUpdatedBy: "9474696"
+lastRevision: 1778769590000
+name: Production
+color: 0
+values:
+  - key: apiKey
+    value: demo-key
+    enabled: true
+createdAt: 2026-05-14T05:19:26.000Z
+updatedAt: 2026-05-14T14:39:50.000Z
