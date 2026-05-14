@@ -1,0 +1,32 @@
+$kind: http-request
+name: PATCH /applications/:id/status - should return 409 for invalid status transition
+description: Negative business-rule test for invalid lifecycle transitions.
+url: "{{baseUrl}}/applications/{{approvedApplicationId}}/status"
+method: PATCH
+headers:
+  x-api-key: "{{apiKey}}"
+  x-correlation-id: corr_demo_postman_negative_conflict
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "status": "cancelled",
+      "reason": "Attempting to cancel an already approved application."
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const body = pm.response.json();
+      pm.test('PATCH /applications/:id/status - should return 409 for invalid status transition', function () {
+        pm.response.to.have.status(409);
+      });
+      pm.test('Contract - conflict response should include standard error shape', function () {
+        pm.expect(body.error).to.include.keys(['code', 'message', 'correlationId']);
+      });
+      pm.test('Business - terminal approved status should not transition to cancelled', function () {
+        pm.expect(body.error.code).to.eql('INVALID_STATUS_TRANSITION');
+        pm.expect(body.error.message).to.include('approved');
+      });
+    language: text/javascript
+order: 4000

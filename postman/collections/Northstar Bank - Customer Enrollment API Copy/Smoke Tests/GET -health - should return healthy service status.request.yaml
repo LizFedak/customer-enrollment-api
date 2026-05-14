@@ -1,0 +1,24 @@
+$kind: http-request
+name: GET /health - should return healthy service status
+description: Smoke check for service health.
+url: "{{baseUrl}}/health"
+method: GET
+headers:
+  x-api-key: "{{apiKey}}"
+  x-correlation-id: corr_demo_postman_smoke_health
+scripts:
+  - type: afterResponse
+    code: |-
+      const body = pm.response.json();
+      pm.test('GET /health - should return healthy service status', function () {
+        pm.response.to.have.status(200);
+      });
+      pm.test('Contract - health response should include service metadata', function () {
+        pm.expect(body).to.include.keys(['status', 'service', 'timestamp', 'correlationId']);
+        pm.expect(body.service).to.eql('Customer Enrollment API');
+      });
+      pm.test('Business - health status should be healthy', function () {
+        pm.expect(body.status).to.eql('healthy');
+      });
+    language: text/javascript
+order: 1000

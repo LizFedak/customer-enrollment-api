@@ -1,0 +1,26 @@
+$kind: http-request
+name: DELETE /applications/:id - should delete CRUD application
+description: Deletes the CRUD test application from in-memory demo data.
+url: "{{baseUrl}}/applications/{{crudApplicationId}}"
+method: DELETE
+headers:
+  x-api-key: "{{apiKey}}"
+  x-correlation-id: corr_demo_postman_crud_delete
+scripts:
+  - type: afterResponse
+    code: |-
+      const body = pm.response.json();
+      pm.test('DELETE /applications/:id - should delete CRUD application', function () {
+        pm.response.to.have.status(200);
+      });
+      pm.test('Contract - delete response should include result and meta', function () {
+        pm.expect(body.data).to.include.keys(['id', 'deleted', 'status']);
+        pm.expect(body.meta).to.include.keys(['correlationId', 'timestamp']);
+      });
+      pm.test('Business - delete should mark application as cancelled in response', function () {
+        pm.expect(body.data.id).to.eql(pm.collectionVariables.get('crudApplicationId'));
+        pm.expect(body.data.deleted).to.eql(true);
+        pm.expect(body.data.status).to.eql('cancelled');
+      });
+    language: text/javascript
+order: 5000

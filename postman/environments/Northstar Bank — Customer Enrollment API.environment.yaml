@@ -1,0 +1,6 @@
+name: Northstar Bank — Customer Enrollment API
+values:
+  - key: baseUrl
+    value: 'http://localhost:3000'
+  - key: apiKey
+    value: demo-key

@@ -1,0 +1,27 @@
+$kind: http-request
+name: GET /applications - should list seeded applications
+description: Happy-path smoke check for listing applications.
+url: "{{baseUrl}}/applications?limit=10&offset=0"
+method: GET
+headers:
+  x-api-key: "{{apiKey}}"
+  x-correlation-id: corr_demo_postman_smoke_list
+queryParams:
+  limit: "10"
+  offset: "0"
+scripts:
+  - type: afterResponse
+    code: |-
+      const body = pm.response.json();
+      pm.test('GET /applications - should list seeded applications', function () {
+        pm.response.to.have.status(200);
+      });
+      pm.test('Contract - list response should include array data and pagination meta', function () {
+        pm.expect(body.data).to.be.an('array');
+        pm.expect(body.meta).to.include.keys(['correlationId', 'timestamp', 'count', 'total', 'limit', 'offset']);
+      });
+      pm.test('Business - list response should include at least one application', function () {
+        pm.expect(body.data.length).to.be.greaterThan(0);
+      });
+    language: text/javascript
+order: 2000

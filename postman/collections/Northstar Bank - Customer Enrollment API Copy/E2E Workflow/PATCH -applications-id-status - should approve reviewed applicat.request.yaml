@@ -1,0 +1,33 @@
+$kind: http-request
+name: PATCH /applications/:id/status - should approve reviewed application
+description: Approves the reviewed E2E application.
+url: "{{baseUrl}}/applications/{{e2eApplicationId}}/status"
+method: PATCH
+headers:
+  x-api-key: "{{apiKey}}"
+  x-correlation-id: corr_demo_postman_e2e_approve
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "status": "approved",
+      "reason": "Identity verification and funding checks passed."
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const body = pm.response.json();
+      pm.test('PATCH /applications/:id/status - should approve reviewed application', function () {
+        pm.response.to.have.status(200);
+      });
+      pm.test('Contract - approval response should keep the same application ID', function () {
+        pm.expect(body.data.id).to.eql(pm.collectionVariables.get('e2eApplicationId'));
+        pm.expect(body.data).to.include.keys(['status', 'decisionSummary']);
+      });
+      pm.test('Business - reviewed application should transition to approved', function () {
+        pm.expect(body.data.status).to.eql('approved');
+        pm.expect(body.data.decisionSummary).to.eql('Identity verification and funding checks passed.');
+      });
+    language: text/javascript
+order: 4000

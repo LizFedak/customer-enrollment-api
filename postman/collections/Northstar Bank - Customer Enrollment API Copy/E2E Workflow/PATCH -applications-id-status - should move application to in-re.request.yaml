@@ -1,0 +1,33 @@
+$kind: http-request
+name: PATCH /applications/:id/status - should move application to in-review
+description: Moves the created E2E application into manual review.
+url: "{{baseUrl}}/applications/{{e2eApplicationId}}/status"
+method: PATCH
+headers:
+  x-api-key: "{{apiKey}}"
+  x-correlation-id: corr_demo_postman_e2e_review
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "status": "in-review",
+      "reason": "KYC review is underway."
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const body = pm.response.json();
+      pm.test('PATCH /applications/:id/status - should move application to in-review', function () {
+        pm.response.to.have.status(200);
+      });
+      pm.test('Contract - status update response should include full application shape', function () {
+        pm.expect(body.data).to.include.keys(['id', 'status', 'decisionSummary', 'updatedAt']);
+        pm.expect(body.meta).to.include.keys(['correlationId', 'timestamp']);
+      });
+      pm.test('Business - status should transition from submitted to in-review', function () {
+        pm.expect(body.data.status).to.eql('in-review');
+        pm.expect(body.data.decisionSummary).to.eql('KYC review is underway.');
+      });
+    language: text/javascript
+order: 3000

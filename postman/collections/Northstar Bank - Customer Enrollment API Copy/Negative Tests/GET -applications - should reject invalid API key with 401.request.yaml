@@ -1,0 +1,24 @@
+$kind: http-request
+name: GET /applications - should reject invalid API key with 401
+description: Negative authentication test using an invalid x-api-key value.
+url: "{{baseUrl}}/applications"
+method: GET
+headers:
+  x-api-key: invalid-key
+  x-correlation-id: corr_demo_postman_negative_invalid_key
+scripts:
+  - type: afterResponse
+    code: |-
+      const body = pm.response.json();
+      pm.test('GET /applications - should reject invalid API key with 401', function () {
+        pm.response.to.have.status(401);
+      });
+      pm.test('Contract - invalid auth should return standard error shape', function () {
+        pm.expect(body.error).to.include.keys(['code', 'message', 'correlationId']);
+      });
+      pm.test('Business - invalid API key should never return application data', function () {
+        pm.expect(body.error.code).to.eql('UNAUTHORIZED');
+        pm.expect(body).to.not.have.property('data');
+      });
+    language: text/javascript
+order: 1000
