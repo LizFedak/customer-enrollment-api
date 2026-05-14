@@ -1,5 +1,6 @@
 workspace:
-  id: ca67e5ad-c19c-453f-bb7e-402951ac3a56
+  id: ""
+
 localResources:
   collections:
     - ../customer-enrollment-api/postman/collection.json
@@ -7,10 +8,14 @@ localResources:
     - ../postman/collections/Northstar Bank - Customer Enrollment API Copy
   environments:
     - ../customer-enrollment-api/postman/environment.json
-    - ../postman/environments/Northstar Bank — Customer Enrollment API.environment.yaml
+    - ../postman/environments/Northstar Bank — Customer Enrollment
+      API.environment.yaml
   specs:
     - ../openapi.yaml
     - ../customer-enrollment-api/openapi.yaml
+
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+
 cloudResources:
   collections:
     ../postman/collections/Northstar Bank - Customer Enrollment API: 9474696-3ecd63be-43af-451c-8d0f-810f7f7ad77a
