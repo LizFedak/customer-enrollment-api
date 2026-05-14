@@ -1,0 +1,906 @@
+{
+  "info": {
+    "_postman_id": "3ecd63be-43af-451c-8d0f-810f7f7ad77a",
+    "name": "Northstar Bank - Customer Enrollment API",
+    "description": "Northstar Bank uses the Customer Enrollment API to accept, review, and manage digital account enrollment applications across retail banking channels. It is consumed by mobile banking, branch-assisted onboarding, contact-center tools, and approved partner onboarding experiences that need a governed way to submit prospective customer information. The API exists in the Northstar Bank portfolio to standardize enrollment workflows, enforce consistent security controls, and make application status visible across internal and partner journeys.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "E2E Workflow",
+      "item": [
+        {
+          "name": "POST /applications - should create a new application and return 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();\npm.test('POST /applications - should create a new application and return 201', function () {\n  pm.response.to.have.status(201);\n});\npm.test('Contract - created application response should include data and meta', function () {\n  pm.expect(body).to.have.keys(['data', 'meta']);\n  ['id', 'status', 'productType', 'initialDepositAmount', 'riskScore', 'requiredDocuments', 'customer', 'consent', 'decisionSummary', 'createdAt', 'updatedAt'].forEach((field) => pm.expect(body.data).to.have.property(field));\n});\npm.test('Types - created application should expose expected field types', function () {\n  pm.expect(body.data.id).to.be.a('string');\n  pm.expect(body.data.riskScore).to.be.a('number');\n  pm.expect(body.data.requiredDocuments).to.be.an('array');\n  pm.expect(body.meta.timestamp).to.be.a('string');\n});\npm.test('Business - new application should start in submitted status', function () {\n  pm.expect(body.data.status).to.eql('submitted');\n  pm.expect(body.data.requiredDocuments).to.include('government-id');\n});\npm.collectionVariables.set('e2eApplicationId', body.data.id);"
+                ]
+              }
+            }
+          ],
+          "id": "dd8052be-9d0c-4d43-8ac1-dfed41017698",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "x-correlation-id",
+                "value": "corr_demo_postman_e2e_create"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productType\": \"checking\",\n  \"initialDepositAmount\": 250,\n  \"customer\": {\n    \"firstName\": \"Riley\",\n    \"lastName\": \"Morgan\",\n    \"dateOfBirth\": \"1989-04-18\",\n    \"email\": \"{{dynamicEmail}}\",\n    \"phone\": \"+1-555-0172\",\n    \"taxIdLast4\": \"{{dynamicTaxIdLast4}}\",\n    \"address\": {\n      \"line1\": \"410 Market Street\",\n      \"line2\": \"Suite 8\",\n      \"city\": \"Denver\",\n      \"state\": \"CO\",\n      \"postalCode\": \"80202\",\n      \"country\": \"US\"\n    }\n  },\n  \"consent\": {\n    \"acceptedTerms\": true,\n    \"marketingOptIn\": false\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications"
+              ]
+            },
+            "description": "Creates a new customer enrollment application for the E2E workflow."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /applications/:id - should retrieve the created application",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();\nconst expectedId = pm.collectionVariables.get('e2eApplicationId');\npm.test('GET /applications/:id - should retrieve the created application', function () {\n  pm.response.to.have.status(200);\n});\npm.test('Contract - detail response should include application data and meta', function () {\n  pm.expect(body).to.have.keys(['data', 'meta']);\n  pm.expect(body.data).to.include.keys(['id', 'status', 'productType', 'customer', 'createdAt', 'updatedAt']);\n});\npm.test('Business - returned application should match the captured E2E ID', function () {\n  pm.expect(body.data.id).to.eql(expectedId);\n  pm.expect(body.data.status).to.eql('submitted');\n});"
+                ]
+              }
+            }
+          ],
+          "id": "1dbba8d8-e557-483f-8b68-e38ef7fe2908",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "x-correlation-id",
+                "value": "corr_demo_postman_e2e_read"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/applications/{{e2eApplicationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "{{e2eApplicationId}}"
+              ]
+            },
+            "description": "Reads the application created earlier in the E2E flow."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /applications/:id/status - should move application to in-review",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();\npm.test('PATCH /applications/:id/status - should move application to in-review', function () {\n  pm.response.to.have.status(200);\n});\npm.test('Contract - status update response should include full application shape', function () {\n  pm.expect(body.data).to.include.keys(['id', 'status', 'decisionSummary', 'updatedAt']);\n  pm.expect(body.meta).to.include.keys(['correlationId', 'timestamp']);\n});\npm.test('Business - status should transition from submitted to in-review', function () {\n  pm.expect(body.data.status).to.eql('in-review');\n  pm.expect(body.data.decisionSummary).to.eql('KYC review is underway.');\n});"
+                ]
+              }
+            }
+          ],
+          "id": "7ac12c2b-5117-4acd-ac43-d1ff1fda7a8d",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "x-correlation-id",
+                "value": "corr_demo_postman_e2e_review"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in-review\",\n  \"reason\": \"KYC review is underway.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/applications/{{e2eApplicationId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "{{e2eApplicationId}}",
+                "status"
+              ]
+            },
+            "description": "Moves the created E2E application into manual review."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /applications/:id/status - should approve reviewed application",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();\npm.test('PATCH /applications/:id/status - should approve reviewed application', function () {\n  pm.response.to.have.status(200);\n});\npm.test('Contract - approval response should keep the same application ID', function () {\n  pm.expect(body.data.id).to.eql(pm.collectionVariables.get('e2eApplicationId'));\n  pm.expect(body.data).to.include.keys(['status', 'decisionSummary']);\n});\npm.test('Business - reviewed application should transition to approved', function () {\n  pm.expect(body.data.status).to.eql('approved');\n  pm.expect(body.data.decisionSummary).to.eql('Identity verification and funding checks passed.');\n});"
+                ]
+              }
+            }
+          ],
+          "id": "22788ada-e376-4d57-953e-29983e5d5da2",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "x-correlation-id",
+                "value": "corr_demo_postman_e2e_approve"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\",\n  \"reason\": \"Identity verification and funding checks passed.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/applications/{{e2eApplicationId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "{{e2eApplicationId}}",
+                "status"
+              ]
+            },
+            "description": "Approves the reviewed E2E application."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /applications/:id - should verify approved state",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();\npm.test('GET /applications/:id - should verify approved state', function () {\n  pm.response.to.have.status(200);\n});\npm.test('Contract - verified application should include customer and consent objects', function () {\n  pm.expect(body.data.customer).to.be.an('object');\n  pm.expect(body.data.consent).to.be.an('object');\n});\npm.test('Business - application should remain approved after verification read', function () {\n  pm.expect(body.data.id).to.eql(pm.collectionVariables.get('e2eApplicationId'));\n  pm.expect(body.data.status).to.eql('approved');\n});"
+                ]
+              }
+            }
+          ],
+          "id": "34f53ccf-a04e-48f9-99c1-edca08695b94",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "x-correlation-id",
+                "value": "corr_demo_postman_e2e_verify"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/applications/{{e2eApplicationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "{{e2eApplicationId}}"
+              ]
+            },
+            "description": "Verifies that the E2E application is approved."
+          },
+          "response": []
+        }
+      ],
+      "id": "4f8dc599-d3b1-4457-ba44-87b536c92b8b"
+    },
+    {
+      "name": "Smoke Tests",
+      "item": [
+        {
+          "name": "GET /health - should return healthy service status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();\npm.test('GET /health - should return healthy service status', function () {\n  pm.response.to.have.status(200);\n});\npm.test('Contract - health response should include service metadata', function () {\n  pm.expect(body).to.include.keys(['status', 'service', 'timestamp', 'correlationId']);\n  pm.expect(body.service).to.eql('Customer Enrollment API');\n});\npm.test('Business - health status should be healthy', function () {\n  pm.expect(body.status).to.eql('healthy');\n});"
+                ]
+              }
+            }
+          ],
+          "id": "e0645ff9-d374-4979-b437-3ac184b662fc",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "x-correlation-id",
+                "value": "corr_demo_postman_smoke_health"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Smoke check for service health."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /applications - should list seeded applications",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();\npm.test('GET /applications - should list seeded applications', function () {\n  pm.response.to.have.status(200);\n});\npm.test('Contract - list response should include array data and pagination meta', function () {\n  pm.expect(body.data).to.be.an('array');\n  pm.expect(body.meta).to.include.keys(['correlationId', 'timestamp', 'count', 'total', 'limit', 'offset']);\n});\npm.test('Business - list response should include at least one application', function () {\n  pm.expect(body.data.length).to.be.greaterThan(0);\n});"
+                ]
+              }
+            }
+          ],
+          "id": "4fe75347-fe1e-4118-9f7c-37c30c196d73",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "x-correlation-id",
+                "value": "corr_demo_postman_smoke_list"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/applications?limit=10&offset=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Happy-path smoke check for listing applications."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /health - should reject invalid API key with 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();\npm.test('GET /health - should reject invalid API key with 401', function () {\n  pm.response.to.have.status(401);\n});\npm.test('Contract - unauthorized response should include standard error shape', function () {\n  pm.expect(body).to.have.property('error');\n  pm.expect(body.error).to.include.keys(['code', 'message', 'correlationId']);\n});\npm.test('Business - invalid key should return UNAUTHORIZED code', function () {\n  pm.expect(body.error.code).to.eql('UNAUTHORIZED');\n});"
+                ]
+              }
+            }
+          ],
+          "id": "7286c480-2d5b-4ced-881a-e6a01b63d4cb",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "invalid-key"
+              },
+              {
+                "key": "x-correlation-id",
+                "value": "corr_demo_postman_smoke_invalid_key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Smoke check proving invalid API keys are rejected."
+          },
+          "response": []
+        }
+      ],
+      "id": "148349fb-3a34-4293-aa48-e6a3696df528"
+    },
+    {
+      "name": "CRUD Operations",
+      "item": [
+        {
+          "name": "POST /applications - should create a CRUD test application",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();\npm.test('POST /applications - should create a CRUD test application', function () {\n  pm.response.to.have.status(201);\n});\npm.test('Contract - create response should include required application fields', function () {\n  pm.expect(body.data).to.include.keys(['id', 'status', 'productType', 'customer', 'consent']);\n});\npm.test('Business - CRUD application should be a savings enrollment', function () {\n  pm.expect(body.data.productType).to.eql('savings');\n  pm.expect(body.data.status).to.eql('submitted');\n});\npm.collectionVariables.set('crudApplicationId', body.data.id);"
+                ]
+              }
+            }
+          ],
+          "id": "db2cf6ff-68e9-457e-ab00-9816c716b534",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "x-correlation-id",
+                "value": "corr_demo_postman_crud_create"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productType\": \"savings\",\n  \"initialDepositAmount\": 800,\n  \"customer\": {\n    \"firstName\": \"Casey\",\n    \"lastName\": \"Lee\",\n    \"dateOfBirth\": \"1993-06-22\",\n    \"email\": \"{{dynamicEmail}}\",\n    \"phone\": \"+1-555-0188\",\n    \"taxIdLast4\": \"{{dynamicTaxIdLast4}}\",\n    \"address\": {\n      \"line1\": \"77 Union Station Road\",\n      \"line2\": \"\",\n      \"city\": \"Chicago\",\n      \"state\": \"IL\",\n      \"postalCode\": \"60606\",\n      \"country\": \"US\"\n    }\n  },\n  \"consent\": {\n    \"acceptedTerms\": true,\n    \"marketingOptIn\": true\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications"
+              ]
+            },
+            "description": "Creates an application for CRUD-specific tests."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /applications - should list applications with filters",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();\npm.test('GET /applications - should list applications with filters', function () {\n  pm.response.to.have.status(200);\n});\npm.test('Contract - filtered list should include pagination metadata', function () {\n  pm.expect(body.data).to.be.an('array');\n  pm.expect(body.meta.limit).to.eql(25);\n  pm.expect(body.meta.offset).to.eql(0);\n});\npm.test('Business - each filtered application should be submitted savings when present', function () {\n  body.data.forEach((application) => {\n    pm.expect(application.status).to.eql('submitted');\n    pm.expect(application.productType).to.eql('savings');\n  });\n});"
+                ]
+              }
+            }
+          ],
+          "id": "be896764-4372-40d5-8e94-b793f77d3e3d",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "x-correlation-id",
+                "value": "corr_demo_postman_crud_list"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/applications?status=submitted&product-type=savings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "submitted"
+                },
+                {
+                  "key": "product-type",
+                  "value": "savings"
+                }
+              ]
+            },
+            "description": "Lists applications with status and product-type filters."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /applications/:id - should return a CRUD application by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();\npm.test('GET /applications/:id - should return a CRUD application by ID', function () {\n  pm.response.to.have.status(200);\n});\npm.test('Contract - detail response should include customer address', function () {\n  pm.expect(body.data.customer).to.have.property('address');\n  pm.expect(body.data.customer.address).to.include.keys(['line1', 'city', 'state', 'postalCode', 'country']);\n});\npm.test('Business - detail ID should match the CRUD variable', function () {\n  pm.expect(body.data.id).to.eql(pm.collectionVariables.get('crudApplicationId'));\n});"
+                ]
+              }
+            }
+          ],
+          "id": "4c6d893d-7a82-4190-aaad-c3f2f057638b",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "x-correlation-id",
+                "value": "corr_demo_postman_crud_get"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/applications/{{crudApplicationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "{{crudApplicationId}}"
+              ]
+            },
+            "description": "Retrieves the CRUD test application by ID."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /applications/:id/status - should update CRUD application status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();\npm.test('PATCH /applications/:id/status - should update CRUD application status', function () {\n  pm.response.to.have.status(200);\n});\npm.test('Contract - status update should return full application envelope', function () {\n  pm.expect(body).to.have.keys(['data', 'meta']);\n  pm.expect(body.data).to.include.keys(['id', 'status', 'decisionSummary']);\n});\npm.test('Business - CRUD application should move to in-review', function () {\n  pm.expect(body.data.status).to.eql('in-review');\n  pm.expect(body.data.id).to.eql(pm.collectionVariables.get('crudApplicationId'));\n});"
+                ]
+              }
+            }
+          ],
+          "id": "52edbd99-fce3-48fe-b234-c4fe611944c5",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "x-correlation-id",
+                "value": "corr_demo_postman_crud_status"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in-review\",\n  \"reason\": \"Partner-submitted enrollment requires operations review.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/applications/{{crudApplicationId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "{{crudApplicationId}}",
+                "status"
+              ]
+            },
+            "description": "Updates the CRUD test application status."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /applications/:id - should delete CRUD application",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();\npm.test('DELETE /applications/:id - should delete CRUD application', function () {\n  pm.response.to.have.status(200);\n});\npm.test('Contract - delete response should include result and meta', function () {\n  pm.expect(body.data).to.include.keys(['id', 'deleted', 'status']);\n  pm.expect(body.meta).to.include.keys(['correlationId', 'timestamp']);\n});\npm.test('Business - delete should mark application as cancelled in response', function () {\n  pm.expect(body.data.id).to.eql(pm.collectionVariables.get('crudApplicationId'));\n  pm.expect(body.data.deleted).to.eql(true);\n  pm.expect(body.data.status).to.eql('cancelled');\n});"
+                ]
+              }
+            }
+          ],
+          "id": "89b07679-d71d-4b82-a3b8-acfa544f6576",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "x-correlation-id",
+                "value": "corr_demo_postman_crud_delete"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/applications/{{crudApplicationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "{{crudApplicationId}}"
+              ]
+            },
+            "description": "Deletes the CRUD test application from in-memory demo data."
+          },
+          "response": []
+        }
+      ],
+      "id": "1f0e28dc-68b3-4a14-ab06-5ca0f1814ed1"
+    },
+    {
+      "name": "Negative Tests",
+      "item": [
+        {
+          "name": "GET /applications - should reject invalid API key with 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();\npm.test('GET /applications - should reject invalid API key with 401', function () {\n  pm.response.to.have.status(401);\n});\npm.test('Contract - invalid auth should return standard error shape', function () {\n  pm.expect(body.error).to.include.keys(['code', 'message', 'correlationId']);\n});\npm.test('Business - invalid API key should never return application data', function () {\n  pm.expect(body.error.code).to.eql('UNAUTHORIZED');\n  pm.expect(body).to.not.have.property('data');\n});"
+                ]
+              }
+            }
+          ],
+          "id": "2502859e-85f5-4e23-953c-3c5ba55246df",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "invalid-key"
+              },
+              {
+                "key": "x-correlation-id",
+                "value": "corr_demo_postman_negative_invalid_key"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications"
+              ]
+            },
+            "description": "Negative authentication test using an invalid x-api-key value."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /applications - should return 400 for missing required fields",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();\npm.test('POST /applications - should return 400 for missing required fields', function () {\n  pm.response.to.have.status(400);\n});\npm.test('Contract - validation error should include standard error shape', function () {\n  pm.expect(body.error).to.include.keys(['code', 'message', 'correlationId']);\n});\npm.test('Business - missing customer payload should return VALIDATION_ERROR', function () {\n  pm.expect(body.error.code).to.eql('VALIDATION_ERROR');\n  pm.expect(body.error.message).to.include('customer');\n});"
+                ]
+              }
+            }
+          ],
+          "id": "aa1e08b5-8bee-4739-93fd-381fb2fafa7e",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "x-correlation-id",
+                "value": "corr_demo_postman_negative_bad_payload"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productType\": \"checking\"\n}",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications"
+              ]
+            },
+            "description": "Negative validation test for a request missing required customer and consent fields."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /applications/:id - should return 404 for unknown ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();\npm.test('GET /applications/:id - should return 404 for unknown ID', function () {\n  pm.response.to.have.status(404);\n});\npm.test('Contract - not found response should include standard error shape', function () {\n  pm.expect(body.error).to.include.keys(['code', 'message', 'correlationId']);\n});\npm.test('Business - unknown ID should return APPLICATION_NOT_FOUND', function () {\n  pm.expect(body.error.code).to.eql('APPLICATION_NOT_FOUND');\n});"
+                ]
+              }
+            }
+          ],
+          "id": "cea177c2-0f6a-4e3d-b5cf-dfdd6e95a8ef",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "x-correlation-id",
+                "value": "corr_demo_postman_negative_not_found"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/applications/{{missingApplicationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "{{missingApplicationId}}"
+              ]
+            },
+            "description": "Negative resource lookup test for an unknown application ID."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /applications/:id/status - should return 409 for invalid status transition",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();\npm.test('PATCH /applications/:id/status - should return 409 for invalid status transition', function () {\n  pm.response.to.have.status(409);\n});\npm.test('Contract - conflict response should include standard error shape', function () {\n  pm.expect(body.error).to.include.keys(['code', 'message', 'correlationId']);\n});\npm.test('Business - terminal approved status should not transition to cancelled', function () {\n  pm.expect(body.error.code).to.eql('INVALID_STATUS_TRANSITION');\n  pm.expect(body.error.message).to.include('approved');\n});"
+                ]
+              }
+            }
+          ],
+          "id": "9a236e20-a900-4584-ba67-d142dfc3c2da",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "x-correlation-id",
+                "value": "corr_demo_postman_negative_conflict"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"cancelled\",\n  \"reason\": \"Attempting to cancel an already approved application.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/applications/{{approvedApplicationId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "{{approvedApplicationId}}",
+                "status"
+              ]
+            },
+            "description": "Negative business-rule test for invalid lifecycle transitions."
+          },
+          "response": []
+        }
+      ],
+      "id": "960b285c-3e20-4c6d-99bb-a1a01b8a5e3c"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "id": "98ac50c5-ec91-446b-945f-0371117083c7",
+        "type": "text/javascript",
+        "requests": {},
+        "exec": [
+          "const timestamp = new Date().toISOString();",
+          "const suffix = Date.now().toString().slice(-6);",
+          "const taxIdLast4 = String(1000 + (Number(suffix) % 9000));",
+          "pm.collectionVariables.set('requestTimestamp', timestamp);",
+          "pm.collectionVariables.set('dynamicEmail', `postman.demo.${suffix}@northstarbank.example`);",
+          "pm.collectionVariables.set('dynamicTaxIdLast4', taxIdLast4);",
+          "console.log(`[Northstar Bank] ${pm.info.requestName} -> ${pm.request.method} ${pm.request.url.toString()}`);"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "id": "49a10b37-b09e-433f-ac78-374ce180cf59",
+        "type": "text/javascript",
+        "requests": {},
+        "exec": [
+          "pm.test('Contract - response body should be valid JSON', function () {",
+          "  pm.expect(function () { pm.response.json(); }).to.not.throw();",
+          "});",
+          "",
+          "pm.test('Contract - response should include a correlation ID', function () {",
+          "  const body = pm.response.json();",
+          "  const correlationId = body.meta && body.meta.correlationId ? body.meta.correlationId : (body.error && body.error.correlationId ? body.error.correlationId : body.correlationId);",
+          "  pm.expect(correlationId).to.be.a('string');",
+          "  pm.expect(correlationId).to.match(/^corr_demo_/);",
+          "});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "apiKey",
+      "value": "demo-key"
+    },
+    {
+      "key": "applicationId",
+      "value": "app_demo_1001"
+    },
+    {
+      "key": "reviewApplicationId",
+      "value": "app_demo_1002"
+    },
+    {
+      "key": "approvedApplicationId",
+      "value": "app_demo_1003"
+    },
+    {
+      "key": "missingApplicationId",
+      "value": "app_demo_9999"
+    },
+    {
+      "key": "e2eApplicationId",
+      "value": ""
+    },
+    {
+      "key": "crudApplicationId",
+      "value": ""
+    },
+    {
+      "key": "dynamicEmail",
+      "value": "demo.customer@northstarbank.example"
+    },
+    {
+      "key": "dynamicTaxIdLast4",
+      "value": "4821"
+    },
+    {
+      "key": "requestTimestamp",
+      "value": ""
+    }
+  ]
+}
