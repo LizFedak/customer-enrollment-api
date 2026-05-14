@@ -1,0 +1,20 @@
+{
+  "workspace": {
+    "id": "ca67e5ad-c19c-453f-bb7e-402951ac3a56"
+  },
+  "entities": {
+    "collections": [
+      "../postman/collections/northstar-customer-enrollment-api_9474696-0c00a914-96ef-4414-8e37-56015dcf8862.postman_collection.json",
+      "../postman/collections/Northstar Bank - Customer Enrollment API_9474696-3ecd63be-43af-451c-8d0f-810f7f7ad77a.postman_collection.json",
+      "../postman/collections/northstar-customer-enrollment-api_9474696-c466f9ac-5b12-413a-b9b1-3ed2afa7b031.postman_collection.json"
+    ],
+    "environments": [
+      "../postman/environments/Northstar Bank — Customer Enrollment API_9474696-5cf0f29f-8dfe-4034-bff5-b7e68589b043.postman_environment.json",
+      "../postman/environments/Northstar Bank — Customer Enrollment API_9474696-27d7dd49-cd09-4ddf-a9cf-2d2c1093f4e4.postman_environment.json",
+      "../postman/environments/Production_9474696-21e13fae-8143-4728-b4ad-878fe437ddcf.postman_environment.json"
+    ],
+    "specs": [],
+    "flows": [],
+    "globals": []
+  }
+}
